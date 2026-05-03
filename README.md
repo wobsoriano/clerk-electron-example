@@ -1,5 +1,7 @@
 # Electron + Clerk
 
+<img width="1164" height="836" alt="Screenshot 2026-05-03 at 5 01 03 AM" src="https://github.com/user-attachments/assets/8de164f1-754d-48da-947f-95b58d5cc6ff" />
+
 An example Electron app demonstrating [Clerk](https://clerk.com) authentication in a desktop environment.
 
 ## Quick Start
