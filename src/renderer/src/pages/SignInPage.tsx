@@ -5,19 +5,15 @@ import { Button } from '@base-ui/react/button'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useSSO } from '../hooks/useSSO'
+import { useEnabledSocialProviders } from '../hooks/useEnabledSocialProviders'
 import { Spinner } from '../components/Spinner'
 import type { OAuthStrategy } from '@clerk/shared/types'
-
-const SSO_PROVIDERS: { strategy: OAuthStrategy; label: string }[] = [
-  { strategy: 'oauth_google', label: 'Google' },
-  { strategy: 'oauth_github', label: 'GitHub' },
-  { strategy: 'oauth_microsoft', label: 'Microsoft' },
-]
 
 export function SignInPage(): React.JSX.Element {
   const navigate = useNavigate()
   const { signIn, errors, fetchStatus } = useSignIn()
   const { startSSOFlow } = useSSO()
+  const ssoProviders = useEnabledSocialProviders()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [ssoLoading, setSsoLoading] = useState(false)
@@ -112,14 +108,14 @@ export function SignInPage(): React.JSX.Element {
           </div>
         ) : (
           <div style={s.ssoRow}>
-            {SSO_PROVIDERS.map(({ strategy, label }) => (
+            {ssoProviders.map(({ strategy, name }) => (
               <Button
                 key={strategy}
                 type="button"
                 style={s.ssoBtn}
                 onClick={() => onSSO(strategy)}
               >
-                {label}
+                {name}
               </Button>
             ))}
           </div>
