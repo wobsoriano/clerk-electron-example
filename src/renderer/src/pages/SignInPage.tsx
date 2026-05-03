@@ -5,6 +5,7 @@ import { Button } from '@base-ui/react/button'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useSSO } from '../hooks/useSSO'
+import { Spinner } from '../components/Spinner'
 import type { OAuthStrategy } from '@clerk/shared/types'
 
 const SSO_PROVIDERS: { strategy: OAuthStrategy; label: string }[] = [
@@ -104,19 +105,25 @@ export function SignInPage(): React.JSX.Element {
           <hr style={s.dividerLine} />
         </div>
 
-        <div style={s.ssoRow}>
-          {SSO_PROVIDERS.map(({ strategy, label }) => (
-            <Button
-              key={strategy}
-              type="button"
-              disabled={ssoLoading}
-              style={s.ssoBtn}
-              onClick={() => onSSO(strategy)}
-            >
-              {label}
-            </Button>
-          ))}
-        </div>
+        {ssoLoading ? (
+          <div style={s.ssoWaiting}>
+            <Spinner />
+            <span>Waiting for browser sign-in to complete...</span>
+          </div>
+        ) : (
+          <div style={s.ssoRow}>
+            {SSO_PROVIDERS.map(({ strategy, label }) => (
+              <Button
+                key={strategy}
+                type="button"
+                style={s.ssoBtn}
+                onClick={() => onSSO(strategy)}
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
+        )}
         {ssoError && <p style={s.error}>{ssoError}</p>}
 
         <p style={s.switchText}>
@@ -159,6 +166,7 @@ const s: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     width: '100%',
   },
+  ssoWaiting: { display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--ev-c-text-2)', fontSize: '13px', justifyContent: 'center', padding: '8px 0' },
   ssoRow: { display: 'flex', gap: '8px' },
   ssoBtn: {
     flex: 1,
