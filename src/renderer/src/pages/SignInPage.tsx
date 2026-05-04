@@ -35,7 +35,7 @@ export function SignInPage(): React.JSX.Element {
           if (session?.currentTask) return
           const url = decorateUrl('/')
           navigate(url.startsWith('http') ? '/' : url)
-        },
+        }
       })
     }
   }
@@ -109,12 +109,7 @@ export function SignInPage(): React.JSX.Element {
         ) : (
           <div style={s.ssoRow}>
             {ssoProviders.map(({ strategy, name }) => (
-              <Button
-                key={strategy}
-                type="button"
-                style={s.ssoBtn}
-                onClick={() => onSSO(strategy)}
-              >
+              <Button key={strategy} type="button" style={s.ssoBtn} onClick={() => onSSO(strategy)}>
                 {name}
               </Button>
             ))}
@@ -149,7 +144,7 @@ const s: Record<string, React.CSSProperties> = {
     fontSize: '14px',
     outline: 'none',
     width: '100%',
-    boxSizing: 'border-box',
+    boxSizing: 'border-box'
   },
   primaryBtn: {
     padding: '10px',
@@ -160,9 +155,17 @@ const s: Record<string, React.CSSProperties> = {
     fontSize: '14px',
     fontWeight: 500,
     cursor: 'pointer',
-    width: '100%',
+    width: '100%'
   },
-  ssoWaiting: { display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--ev-c-text-2)', fontSize: '13px', justifyContent: 'center', padding: '8px 0' },
+  ssoWaiting: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    color: 'var(--ev-c-text-2)',
+    fontSize: '13px',
+    justifyContent: 'center',
+    padding: '8px 0'
+  },
   ssoRow: { display: 'flex', gap: '8px' },
   ssoBtn: {
     flex: 1,
@@ -172,12 +175,12 @@ const s: Record<string, React.CSSProperties> = {
     borderRadius: '6px',
     color: 'var(--ev-c-text-1)',
     fontSize: '13px',
-    cursor: 'pointer',
+    cursor: 'pointer'
   },
   divider: { display: 'flex', alignItems: 'center', gap: '12px' },
   dividerLine: { flex: 1, height: '1px', background: 'var(--ev-c-gray-3)', border: 'none' },
   dividerText: { fontSize: '12px', color: 'var(--ev-c-text-3)', whiteSpace: 'nowrap' },
   switchText: { fontSize: '13px', color: 'var(--ev-c-text-2)', textAlign: 'center', margin: 0 },
   link: { color: '#8b74ff', textDecoration: 'none' },
-  error: { fontSize: '12px', color: '#f87171', margin: 0 },
+  error: { fontSize: '12px', color: '#f87171', margin: 0 }
 }
