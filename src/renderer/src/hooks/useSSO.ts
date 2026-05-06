@@ -1,6 +1,8 @@
 import { useSignIn, useSignUp } from '@clerk/react/legacy'
 import type { OAuthStrategy, SetActive, SignInResource, SignUpResource } from '@clerk/shared/types'
 
+const SSO_CALLBACK_TIMEOUT_MS = 3 * 60 * 1000
+
 export type StartSSOFlowParams = {
   strategy: OAuthStrategy
   unsafeMetadata?: SignUpUnsafeMetadata
@@ -13,7 +15,11 @@ export type StartSSOFlowReturnType = {
   signUp?: SignUpResource
 }
 
-export function useSSO() {
+type UseSSOReturn = {
+  startSSOFlow: (params: StartSSOFlowParams) => Promise<StartSSOFlowReturnType>
+}
+
+export function useSSO(): UseSSOReturn {
   const { signIn, setActive, isLoaded: isSignInLoaded } = useSignIn()
   const { signUp, isLoaded: isSignUpLoaded } = useSignUp()
 
@@ -22,12 +28,12 @@ export function useSSO() {
       return { createdSessionId: null, signIn, signUp, setActive }
     }
 
-    // clerk-electron://sso-callback must be in Clerk's allowed redirect URLs.
+    // The exact loopback callback URL must be whitelisted in Clerk.
     const redirectUrl = await window.electron.sso.getRedirectUrl()
 
     await signIn!.create({
       strategy: params.strategy,
-      redirectUrl,
+      redirectUrl
     })
 
     const { externalVerificationRedirectURL } = signIn!.firstFactorVerification
@@ -35,9 +41,18 @@ export function useSSO() {
       throw new Error('Missing external verification redirect URL for SSO flow')
     }
 
-    // Resolves when the OS fires the clerk-electron:// deep link after OAuth completes.
-    const callbackUrl = await new Promise<string>((resolve) => {
-      window.electron.sso.onCallback(resolve)
+    // Resolves when the browser redirects back to the loopback listener after OAuth completes.
+    const callbackUrl = await new Promise<string>((resolve, reject) => {
+      const removeListener = window.electron.sso.onCallback((url) => {
+        window.clearTimeout(timeoutId)
+        resolve(url)
+      })
+
+      const timeoutId = window.setTimeout(() => {
+        removeListener()
+        reject(new Error('Timed out waiting for the browser to finish sign-in'))
+      }, SSO_CALLBACK_TIMEOUT_MS)
+
       window.electron.sso.open(externalVerificationRedirectURL.toString())
     })
 
@@ -52,7 +67,7 @@ export function useSSO() {
       createdSessionId: signUp!.createdSessionId ?? signIn!.createdSessionId ?? null,
       setActive,
       signIn,
-      signUp,
+      signUp
     }
   }
 
