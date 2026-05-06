@@ -8,7 +8,8 @@ interface TokenCache {
 
 interface SSOBridge {
   getRedirectUrl(): Promise<string>
-  authenticate(url: string): Promise<string | null>
+  open(url: string): void
+  onCallback(cb: (url: string) => void): () => void
 }
 
 declare global {

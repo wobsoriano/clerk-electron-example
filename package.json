@@ -28,17 +28,8 @@
     "@clerk/ui": "^1.7.0",
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
-    "electron-auth-session": "^0.0.1",
     "electron-store": "^8.2.0",
     "react-router-dom": "^7.14.2"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "electron",
-      "electron-auth-session",
-      "electron-winstaller",
-      "esbuild"
-    ]
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",

@@ -2,8 +2,19 @@ import { app, shell, BrowserWindow } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { registerProtocol, setupDeepLinkHandling } from './auth/deep-link-handler'
 import { setupAuthIpcHandlers } from './auth/ipc-handlers'
 import { setupClerkRequestInterception } from './auth/request-interceptor'
+
+// Single instance lock is required for deep link handling on Windows/Linux.
+// On macOS, open-url fires in the existing instance automatically.
+if (!app.requestSingleInstanceLock()) {
+  app.quit()
+  process.exit(0)
+}
+
+registerProtocol()
+setupDeepLinkHandling()
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
