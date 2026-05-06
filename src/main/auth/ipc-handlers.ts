@@ -1,5 +1,4 @@
-import { ipcMain, BrowserWindow } from 'electron'
-import { AuthSession, UserCancelledError } from 'electron-auth-session'
+import { ipcMain, shell } from 'electron'
 import { getToken, saveToken, clearToken } from './token-store'
 import { AUTH_CHANNELS } from './types'
 
@@ -10,21 +9,7 @@ export function setupAuthIpcHandlers(): void {
   )
   ipcMain.handle(AUTH_CHANNELS.TOKEN_CLEAR, (_event, key: string) => clearToken(key))
 
-  ipcMain.handle(AUTH_CHANNELS.SSO_AUTHENTICATE, async (event, url: string) => {
-    const win = BrowserWindow.fromWebContents(event.sender)
-    if (!win) throw new Error('No window found for SSO request')
-
-    const session = new AuthSession({
-      url,
-      callbackScheme: 'clerk-electron',
-      windowHandle: win.getNativeWindowHandle()
-    })
-
-    try {
-      return await session.start()
-    } catch (err) {
-      if (err instanceof UserCancelledError) return null
-      throw err
-    }
+  ipcMain.on(AUTH_CHANNELS.SSO_OPEN, (_event, url: string) => {
+    shell.openExternal(url)
   })
 }

@@ -22,11 +22,12 @@ export function useSSO() {
       return { createdSessionId: null, signIn, signUp, setActive }
     }
 
+    // clerk-electron://sso-callback must be in Clerk's allowed redirect URLs.
     const redirectUrl = await window.electron.sso.getRedirectUrl()
 
     await signIn!.create({
       strategy: params.strategy,
-      redirectUrl
+      redirectUrl,
     })
 
     const { externalVerificationRedirectURL } = signIn!.firstFactorVerification
@@ -34,10 +35,11 @@ export function useSSO() {
       throw new Error('Missing external verification redirect URL for SSO flow')
     }
 
-    const callbackUrl = await window.electron.sso.authenticate(
-      externalVerificationRedirectURL.toString()
-    )
-    if (!callbackUrl) throw new Error('SSO cancelled')
+    // Resolves when the OS fires the clerk-electron:// deep link after OAuth completes.
+    const callbackUrl = await new Promise<string>((resolve) => {
+      window.electron.sso.onCallback(resolve)
+      window.electron.sso.open(externalVerificationRedirectURL.toString())
+    })
 
     const rotatingTokenNonce = new URL(callbackUrl).searchParams.get('rotating_token_nonce') ?? ''
     await signIn!.reload({ rotatingTokenNonce })
@@ -50,7 +52,7 @@ export function useSSO() {
       createdSessionId: signUp!.createdSessionId ?? signIn!.createdSessionId ?? null,
       setActive,
       signIn,
-      signUp
+      signUp,
     }
   }
 

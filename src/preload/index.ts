@@ -8,11 +8,16 @@ const tokenCache = {
 }
 
 const sso = {
-  // Returns the callback scheme URL to register with Clerk as the redirect URL.
+  // Returns the static custom protocol redirect URL registered with Clerk.
   getRedirectUrl: (): Promise<string> => Promise.resolve('clerk-electron://sso-callback'),
-  // Opens a native OS auth session and resolves with the callback URL, or null if cancelled.
-  authenticate: (url: string): Promise<string | null> =>
-    ipcRenderer.invoke('auth:sso:authenticate', url)
+  // Opens the OAuth provider URL in the system browser.
+  open: (url: string): void => ipcRenderer.send('auth:sso:open', url),
+  // Registers a one-time callback for when the OS deep link fires after OAuth.
+  onCallback: (cb: (url: string) => void): (() => void) => {
+    const listener = (_: Electron.IpcRendererEvent, url: string): void => cb(url)
+    ipcRenderer.once('auth:sso:callback', listener)
+    return () => ipcRenderer.removeListener('auth:sso:callback', listener)
+  }
 }
 
 if (process.contextIsolated) {
