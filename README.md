@@ -18,7 +18,7 @@ Create `.env`:
 VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
 ```
 
-Add `http://127.0.0.1:45789/sso-callback` to your [Clerk Dashboard](https://dashboard.clerk.com) under **Allowed redirect URLs**.
+Enable Native API and add `http://127.0.0.1:45789/sso-callback` under **Redirect URLs** in your [Clerk Dashboard](https://dashboard.clerk.com).
 
 Enable the OAuth providers you want (Google, GitHub, Microsoft) in your Clerk Dashboard.
 
