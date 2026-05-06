@@ -20,8 +20,6 @@ VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
 
 Enable Native API and add `http://127.0.0.1:45789/sso-callback` under **Redirect URLs** in your [Clerk Dashboard](https://dashboard.clerk.com).
 
-Enable the OAuth providers you want (Google, GitHub, Microsoft) in your Clerk Dashboard.
-
 ```bash
 npm run dev
 ```
