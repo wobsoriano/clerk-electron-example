@@ -22,14 +22,14 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
-    "@clerk/clerk-js": "^6.8.0",
-    "@clerk/react": "^6.5.0",
-    "@clerk/shared": "^4.9.0",
-    "@clerk/ui": "^1.7.0",
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
     "electron-store": "^8.2.0",
-    "react-router-dom": "^7.14.2"
+    "react-router-dom": "^7.14.2",
+    "@clerk/ui": "1.16.0-snapshot.v20260608163957",
+    "@clerk/clerk-js": "6.15.0-snapshot.v20260608163957",
+    "@clerk/shared": "4.16.0-snapshot.v20260608163957",
+    "@clerk/react": "6.7.4-snapshot.v20260608163957"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",

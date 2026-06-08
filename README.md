@@ -18,7 +18,7 @@ Create `.env`:
 VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
 ```
 
-Enable Native API and add `http://127.0.0.1:45789/sso-callback` under **Redirect URLs** in your [Clerk Dashboard](https://dashboard.clerk.com).
+Enable Native API and add `clerk://sso-callback` under **Redirect URLs** in your [Clerk Dashboard](https://dashboard.clerk.com).
 
 ```bash
 npm run dev
@@ -29,7 +29,7 @@ npm run dev
 Electron apps can't use traditional cookie-based auth. This example shows how to run Clerk in a desktop app using:
 
 1. **Native token flow** — Clerk's native app mode, the same approach used by `@clerk/expo`, `clerk-ios` and `clerk-android`, adapted for Electron
-2. **Loopback redirect SSO** — Starts a temporary localhost listener and receives the OAuth callback over `http://127.0.0.1`
+2. **Deep link redirect SSO** — Registers a `clerk://` custom protocol scheme; after OAuth the provider redirects back through Clerk to the `clerk://sso-callback` deep link, which the OS routes to the app
 3. **Encrypted session storage** — Uses `electron-store` with Electron's `safeStorage` API (OS keychain) so tokens survive restarts and can't be read from disk
 
 ## Architecture
@@ -44,8 +44,8 @@ Renderer (React)              Main Process (Node.js)
 │  startSSOFlow()     │      │  token:get/save/clear          │
 └─────────────────────┘      │  auth:sso:prepare/open         │
                              ├────────────────────────────────┤
-     System Browser          │ auth/loopback-handler.ts       │
-  ┌─────────────────┐        │  localhost callback server     │
+     System Browser          │ auth/deeplink-handler.ts       │
+  ┌─────────────────┐        │  clerk:// protocol handler     │
   │ OAuth Provider  │───────▶│  callback -> renderer IPC      │
   └─────────────────┘        ├────────────────────────────────┤
                              │ auth/token-store.ts            │
@@ -59,8 +59,8 @@ Renderer (React)              Main Process (Node.js)
 | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | [`src/renderer/src/lib/createClerkInstance.ts`](src/renderer/src/lib/createClerkInstance.ts) | Configures the Clerk instance for Electron's native environment |
 | [`src/renderer/src/lib/ClerkProvider.tsx`](src/renderer/src/lib/ClerkProvider.tsx)           | Wires Clerk to React Router                                     |
-| [`src/renderer/src/hooks/useSSO.ts`](src/renderer/src/hooks/useSSO.ts)                       | Orchestrates the OAuth loopback flow                            |
-| [`src/main/auth/loopback-handler.ts`](src/main/auth/loopback-handler.ts)                     | Starts the loopback callback server and forwards callbacks      |
+| [`src/renderer/src/hooks/useSSO.ts`](src/renderer/src/hooks/useSSO.ts)                       | Orchestrates the OAuth deep-link flow                           |
+| [`src/main/auth/deeplink-handler.ts`](src/main/auth/deeplink-handler.ts)                     | Registers the `clerk://` scheme and forwards deep-link callbacks |
 | [`src/main/auth/ipc-handlers.ts`](src/main/auth/ipc-handlers.ts)                             | IPC handlers for token storage and SSO                          |
 | [`src/main/auth/token-store.ts`](src/main/auth/token-store.ts)                               | Encrypted token persistence via OS keychain                     |
 | [`src/main/auth/request-interceptor.ts`](src/main/auth/request-interceptor.ts)               | CORS configuration for Electron's renderer                      |
@@ -75,10 +75,10 @@ Clerk's web SDK is designed for browsers where sessions live in cookies. Electro
 ### OAuth SSO flow
 
 1. User clicks a social button (Google, GitHub, Microsoft)
-2. Electron prepares `http://127.0.0.1:45789/sso-callback` and Clerk generates a URL pointing to the OAuth provider
+2. Electron arms the `clerk://sso-callback` deep link and Clerk generates a URL pointing to the OAuth provider
 3. `shell.openExternal()` opens that URL in the user's system browser (not embedded in Electron)
-4. After the user authenticates, the provider redirects to the loopback callback URL
-5. The Electron main process captures the callback, refocuses the app, and forwards the full callback URL to the renderer via IPC
+4. After the user authenticates, the provider redirects back through Clerk to the `clerk://sso-callback` deep link
+5. The OS routes the deep link to the app; the main process forwards the full callback URL (carrying the nonce) to the renderer via IPC and refocuses the window
 6. The renderer resumes the Clerk sign-in with the returned nonce and activates the session
 
 ### Session storage
@@ -98,4 +98,5 @@ npm run build:linux  # Linux
 - [Clerk Docs](https://clerk.com/docs) — Full authentication documentation
 - [electron-store](https://github.com/sindresorhus/electron-store) — Persistent config storage for Electron
 - [Electron `safeStorage`](https://www.electronjs.org/docs/latest/api/safe-storage) — OS keychain encryption API
-- [Loopback interface redirect (OAuth 2.0)](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3) — Recommended desktop OAuth callback pattern
+- [Private-use URI scheme redirect (OAuth 2.0)](https://datatracker.ietf.org/doc/html/rfc8252#section-7.1) — Custom-scheme desktop OAuth callback pattern
+- [Electron deep links](https://www.electronjs.org/docs/latest/tutorial/launch-app-from-url-in-another-app) — Registering and handling custom protocol schemes

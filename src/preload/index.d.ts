@@ -8,12 +8,19 @@ interface TokenCache {
 
 interface SSOBridge {
   getRedirectUrl(): Promise<string>
-  open(url: string): void
+  open(url: string): Promise<void>
   onCallback(cb: (url: string) => void): () => void
+}
+
+interface ClerkElectronBridge {
+  getRedirectUrl(): Promise<string>
+  openExternal(url: string | URL): Promise<void>
+  waitForRedirectCallback(): Promise<string>
 }
 
 declare global {
   interface Window {
     electron: ElectronAPI & { tokenCache: TokenCache; sso: SSOBridge }
+    __clerk_internal_electron: ClerkElectronBridge
   }
 }

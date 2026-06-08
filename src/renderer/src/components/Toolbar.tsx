@@ -39,6 +39,9 @@ export function Toolbar(): React.JSX.Element {
     >
       <nav style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
         <NavLink to="/">Home</NavLink>
+        <Show when="signed-out">
+          <NavLink to="/waitlist">Waitlist</NavLink>
+        </Show>
         <Show when="signed-in">
           <NavLink to="/profile">Profile</NavLink>
         </Show>

@@ -5,10 +5,16 @@ import { ClerkProvider } from './lib/ClerkProvider'
 import { ProfilePage } from './pages/ProfilePage'
 import { SignInPage } from './pages/SignInPage'
 import { SignUpPage } from './pages/SignUpPage'
+import { WaitlistPage } from './pages/WaitlistPage'
+import { useEffect } from 'react'
 
 const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string
 
 function App(): React.JSX.Element {
+  useEffect(() => {
+    console.log(`navigator.userAgent.includes('Electron')`, navigator.userAgent.includes('Electron'))
+  }, [])
+
   return (
     <MemoryRouter>
       <ClerkProvider publishableKey={publishableKey}>
@@ -32,6 +38,7 @@ function App(): React.JSX.Element {
             />
             <Route path="/sign-in/*" element={<SignInPage />} />
             <Route path="/sign-up/*" element={<SignUpPage />} />
+            <Route path="/waitlist/*" element={<WaitlistPage />} />
             <Route path="/profile/*" element={<ProfilePage />} />
           </Routes>
         </main>
