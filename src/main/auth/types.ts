@@ -4,5 +4,6 @@ export const AUTH_CHANNELS = {
   TOKEN_CLEAR: 'token:clear',
   SSO_PREPARE: 'auth:sso:prepare',
   SSO_OPEN: 'auth:sso:open',
-  SSO_CALLBACK: 'auth:sso:callback'
+  SSO_CALLBACK: 'auth:sso:callback',
+  SSO_CANCELLED: 'auth:sso:cancelled'
 } as const

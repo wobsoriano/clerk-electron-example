@@ -1,16 +1,23 @@
 import { InternalClerkProvider } from '@clerk/react/internal'
-import { ui } from '@clerk/ui'
 import type { ReactNode } from 'react'
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ui } from '@clerk/ui'
 import { createClerkInstance } from './createClerkInstance'
 
 interface ClerkProviderProps {
   publishableKey: string
   children: ReactNode
+  __internal_clerkJSUrl?: string
+  __internal_clerkUIUrl?: string
 }
 
-export function ClerkProvider({ publishableKey, children }: ClerkProviderProps): React.JSX.Element {
+export function ClerkProvider({
+  publishableKey,
+  children,
+  __internal_clerkJSUrl,
+  __internal_clerkUIUrl
+}: ClerkProviderProps): React.JSX.Element {
   const clerk = useMemo(() => createClerkInstance(publishableKey), [publishableKey])
   const navigate = useNavigate()
 
@@ -23,6 +30,9 @@ export function ClerkProvider({ publishableKey, children }: ClerkProviderProps):
       routerPush={(to: string) => navigate(to)}
       routerReplace={(to: string) => navigate(to, { replace: true })}
       signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      __internal_clerkJSUrl={__internal_clerkJSUrl}
+      __internal_clerkUIUrl={__internal_clerkUIUrl}
     >
       {children}
     </InternalClerkProvider>

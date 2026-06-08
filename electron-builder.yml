@@ -11,6 +11,13 @@ files:
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
 asarUnpack:
   - resources/**
+# Registers the clerk:// custom scheme with the OS (writes CFBundleURLTypes on macOS and the
+# MimeType desktop entry on Linux). Windows registration happens at runtime via
+# app.setAsDefaultProtocolClient in src/main/index.ts.
+protocols:
+  - name: Clerk Auth
+    schemes:
+      - clerk
 win:
   executableName: clerk-electron-poc
 nsis:

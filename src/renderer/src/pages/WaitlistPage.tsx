@@ -1,9 +1,9 @@
-import { SignIn } from '@clerk/react'
+import { Waitlist } from '@clerk/react'
 
-export function SignInPage(): React.JSX.Element {
+export function WaitlistPage(): React.JSX.Element {
   return (
     <div style={s.page}>
-      <SignIn />
+      <Waitlist />
     </div>
   )
 }
