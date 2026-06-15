@@ -1,11 +1,69 @@
-import { app, shell, BrowserWindow } from 'electron'
-import { join } from 'path'
+import { createClerkBridge } from '@clerk/electron'
+import { storage } from '@clerk/electron/storage'
+import { join, sep } from 'path'
 import path from 'node:path'
-import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { pathToFileURL } from 'node:url'
+import { app, BrowserWindow, net, protocol } from 'electron'
+import { electronApp, optimizer } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import { setupAuthIpcHandlers } from './auth/ipc-handlers'
-import { setupClerkRequestInterception } from './auth/request-interceptor'
-import { PROTOCOL, isDeepLink, handleDeepLink } from './auth/deeplink-handler'
+
+const APP_PROTOCOL_SCHEME = 'clerk'
+const APP_PROTOCOL_HOST = 'app'
+const DEV_SERVER_URL = process.env['ELECTRON_RENDERER_URL']
+
+const clerk = createClerkBridge({
+  storage: storage(),
+  renderer: {
+    scheme: APP_PROTOCOL_SCHEME,
+    host: APP_PROTOCOL_HOST
+  }
+})
+
+function registerAppProtocol(): void {
+  const rendererRoot = path.resolve(__dirname, '../renderer')
+
+  protocol.handle(APP_PROTOCOL_SCHEME, async (request) => {
+    const url = new URL(request.url)
+
+    if (url.host !== APP_PROTOCOL_HOST) {
+      return new Response(null, { status: 404 })
+    }
+
+    if (DEV_SERVER_URL) {
+      const target = new URL(url.pathname + url.search, DEV_SERVER_URL)
+      const init: RequestInit = { method: request.method }
+
+      if (request.method !== 'GET' && request.method !== 'HEAD') {
+        init.body = request.body
+        ;(init as RequestInit & { duplex: 'half' }).duplex = 'half'
+      }
+
+      try {
+        return await net.fetch(target.toString(), init)
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        console.error('[clerk-electron:app-protocol] dev proxy failed', {
+          requested: request.url,
+          target: target.toString(),
+          error: message
+        })
+        return new Response(`clerk://app dev proxy error: ${message}`, { status: 502 })
+      }
+    }
+
+    const requestedPath = decodeURIComponent(url.pathname)
+    const resolvedPath = path.resolve(rendererRoot, `.${requestedPath}`)
+
+    if (resolvedPath !== rendererRoot && !resolvedPath.startsWith(rendererRoot + sep)) {
+      return new Response(null, { status: 403 })
+    }
+
+    const hasExtension = /\.[^/]+$/.test(url.pathname)
+    const filePath = hasExtension ? resolvedPath : path.join(rendererRoot, 'index.html')
+
+    return net.fetch(pathToFileURL(filePath).toString())
+  })
+}
 
 // Keep the demo app single-instance so deep-link callbacks always resume in the same window.
 if (!app.requestSingleInstanceLock()) {
@@ -13,29 +71,11 @@ if (!app.requestSingleInstanceLock()) {
   process.exit(0)
 }
 
-// Register the custom protocol so the OS routes `clerk://` callbacks to this app.
-if (process.defaultApp) {
-  // Dev: electron is launched as `electron .`, so the entry script must be passed explicitly.
-  if (process.argv.length >= 2) {
-    app.setAsDefaultProtocolClient(PROTOCOL, process.execPath, [path.resolve(process.argv[1])])
-  }
-} else {
-  app.setAsDefaultProtocolClient(PROTOCOL)
+if (process.defaultApp && process.argv.length >= 2) {
+  app.setAsDefaultProtocolClient(APP_PROTOCOL_SCHEME, process.execPath, [
+    path.resolve(process.argv[1])
+  ])
 }
-
-// macOS delivers the deep link via this event (whether the app was already running or cold-started).
-app.on('open-url', (event, url) => {
-  event.preventDefault()
-  console.log('[clerk-electron:sso] app open-url event', { url })
-  handleDeepLink(url)
-})
-
-// Windows/Linux deliver the deep link as argv to the existing instance via the single-instance lock.
-app.on('second-instance', (_event, argv) => {
-  console.log('[clerk-electron:sso] app second-instance event', { argv })
-  const url = argv.find(isDeepLink)
-  if (url) handleDeepLink(url)
-})
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -54,16 +94,7 @@ function createWindow(): void {
     mainWindow.show()
   })
 
-  mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
-    return { action: 'deny' }
-  })
-
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
-  } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
-  }
+  mainWindow.loadURL(`${APP_PROTOCOL_SCHEME}://${APP_PROTOCOL_HOST}/`)
 }
 
 app.whenReady().then(() => {
@@ -73,16 +104,8 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  setupClerkRequestInterception(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY)
-  setupAuthIpcHandlers()
+  registerAppProtocol()
   createWindow()
-
-  // Windows/Linux cold start: the deep link arrives in the launch argv rather than via open-url.
-  const coldStartUrl = process.argv.find(isDeepLink)
-  if (coldStartUrl) {
-    console.log('[clerk-electron:sso] app cold-start deep link', { url: coldStartUrl })
-    handleDeepLink(coldStartUrl)
-  }
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
@@ -91,6 +114,7 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
+    clerk.cleanup()
     app.quit()
   }
 })

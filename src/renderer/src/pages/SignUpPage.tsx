@@ -1,4 +1,4 @@
-import { SignUp } from '@clerk/react'
+import { SignUp } from '@clerk/electron/react'
 
 export function SignUpPage(): React.JSX.Element {
   return (

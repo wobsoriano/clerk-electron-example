@@ -1,4 +1,4 @@
-import { Show, UserButton } from '@clerk/react'
+import { Show, UserButton } from '@clerk/electron/react'
 import { Link, useLocation } from 'react-router-dom'
 
 function NavLink({ to, children }: { to: string; children: React.ReactNode }): React.JSX.Element {
@@ -14,7 +14,7 @@ function NavLink({ to, children }: { to: string; children: React.ReactNode }): R
         fontWeight: active ? 600 : 400,
         padding: '4px 0',
         borderBottom: active ? '2px solid #6c47ff' : '2px solid transparent',
-        transition: 'color 0.15s, border-color 0.15s',
+        transition: 'color 0.15s, border-color 0.15s'
       }}
     >
       {children}
@@ -34,7 +34,7 @@ export function Toolbar(): React.JSX.Element {
         borderBottom: '1px solid #2a2a2e',
         flexShrink: 0,
         backdropFilter: 'blur(8px)',
-        backgroundColor: 'rgba(27, 27, 31, 0.8)',
+        backgroundColor: 'rgba(27, 27, 31, 0.8)'
       }}
     >
       <nav style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
@@ -63,7 +63,7 @@ export function Toolbar(): React.JSX.Element {
               border: '1px solid var(--ev-c-gray-2)',
               borderRadius: '6px',
               backgroundColor: 'transparent',
-              transition: 'background-color 0.15s',
+              transition: 'background-color 0.15s'
             }}
           >
             Sign in

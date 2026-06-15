@@ -1,4 +1,4 @@
-import { UserProfile } from '@clerk/react'
+import { UserProfile } from '@clerk/electron/react'
 
 export function ProfilePage(): React.JSX.Element {
   return (

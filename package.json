@@ -21,15 +21,12 @@
     "build:linux": "electron-vite build && electron-builder --linux"
   },
   "dependencies": {
-    "@base-ui/react": "^1.4.1",
+    "@clerk/electron": "https://pkg.pr.new/@clerk/electron@8786",
+    "@clerk/react": "https://pkg.pr.new/@clerk/react@8786",
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
     "electron-store": "^8.2.0",
-    "react-router-dom": "^7.14.2",
-    "@clerk/ui": "1.16.0-snapshot.v20260608163957",
-    "@clerk/clerk-js": "6.15.0-snapshot.v20260608163957",
-    "@clerk/shared": "4.16.0-snapshot.v20260608163957",
-    "@clerk/react": "6.7.4-snapshot.v20260608163957"
+    "react-router-dom": "^7.14.2"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",

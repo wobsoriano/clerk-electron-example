@@ -1,23 +1,33 @@
-import { Show } from '@clerk/react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { ClerkProvider, Show } from '@clerk/electron/react'
+import { MemoryRouter, Route, Routes, useNavigate } from 'react-router-dom'
 import { Toolbar } from './components/Toolbar'
-import { ClerkProvider } from './lib/ClerkProvider'
 import { ProfilePage } from './pages/ProfilePage'
 import { SignInPage } from './pages/SignInPage'
 import { SignUpPage } from './pages/SignUpPage'
 import { WaitlistPage } from './pages/WaitlistPage'
-import { useEffect } from 'react'
 
 const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string
 
-function App(): React.JSX.Element {
-  useEffect(() => {
-    console.log(`navigator.userAgent.includes('Electron')`, navigator.userAgent.includes('Electron'))
-  }, [])
+function ClerkProviderWithRouter({ children }: { children: React.ReactNode }): React.JSX.Element {
+  const navigate = useNavigate()
 
   return (
+    <ClerkProvider
+      publishableKey={publishableKey}
+      routerPush={(to) => navigate(to)}
+      routerReplace={(to) => navigate(to, { replace: true })}
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+    >
+      {children}
+    </ClerkProvider>
+  )
+}
+
+function App(): React.JSX.Element {
+  return (
     <MemoryRouter>
-      <ClerkProvider publishableKey={publishableKey}>
+      <ClerkProviderWithRouter>
         <Toolbar />
         <main>
           <Routes>
@@ -42,7 +52,7 @@ function App(): React.JSX.Element {
             <Route path="/profile/*" element={<ProfilePage />} />
           </Routes>
         </main>
-      </ClerkProvider>
+      </ClerkProviderWithRouter>
     </MemoryRouter>
   )
 }

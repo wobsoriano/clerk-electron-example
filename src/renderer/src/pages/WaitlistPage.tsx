@@ -1,4 +1,4 @@
-import { Waitlist } from '@clerk/react'
+import { Waitlist } from '@clerk/electron/react'
 
 export function WaitlistPage(): React.JSX.Element {
   return (
