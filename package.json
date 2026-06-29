@@ -21,8 +21,7 @@
     "build:linux": "electron-vite build && electron-builder --linux"
   },
   "dependencies": {
-    "@clerk/electron": "https://pkg.pr.new/@clerk/electron@8786",
-    "@clerk/react": "https://pkg.pr.new/@clerk/react@8786",
+    "@clerk/electron": "^0.0.6",
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
     "electron-store": "^8.2.0",

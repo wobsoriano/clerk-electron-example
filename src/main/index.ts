@@ -3,13 +3,59 @@ import { storage } from '@clerk/electron/storage'
 import { join, sep } from 'path'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { app, BrowserWindow, net, protocol } from 'electron'
+import { app, BrowserWindow, net, protocol, session } from 'electron'
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 
 const APP_PROTOCOL_SCHEME = 'clerk'
 const APP_PROTOCOL_HOST = 'app'
 const DEV_SERVER_URL = process.env['ELECTRON_RENDERER_URL']
+const CLERK_FRONTEND_API_SOURCES = ['https://*.clerk.accounts.dev', 'https://*.clerk.com']
+const CLERK_CHALLENGES_SOURCE = 'https://challenges.cloudflare.com'
+
+function createContentSecurityPolicy(): string {
+  const scriptSources = [
+    "'self'",
+    "'unsafe-inline'",
+    ...CLERK_FRONTEND_API_SOURCES,
+    CLERK_CHALLENGES_SOURCE
+  ]
+  const connectSources = ["'self'", ...CLERK_FRONTEND_API_SOURCES]
+
+  if (DEV_SERVER_URL) {
+    const devServer = new URL(DEV_SERVER_URL)
+    const devWebSocketProtocol = devServer.protocol === 'https:' ? 'wss:' : 'ws:'
+    const devWebSocketOrigin = `${devWebSocketProtocol}//${devServer.host}`
+
+    scriptSources.push("'unsafe-eval'")
+    connectSources.push(devServer.origin, devWebSocketOrigin)
+  }
+
+  return [
+    "default-src 'self'",
+    `script-src ${scriptSources.join(' ')}`,
+    `connect-src ${connectSources.join(' ')}`,
+    "img-src 'self' https://img.clerk.com data:",
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self' https: data:",
+    "worker-src 'self' blob:",
+    `frame-src 'self' ${CLERK_CHALLENGES_SOURCE} ${CLERK_FRONTEND_API_SOURCES.join(' ')}`,
+    "form-action 'self'"
+  ].join('; ')
+}
+
+function registerContentSecurityPolicy(): void {
+  const contentSecurityPolicy = createContentSecurityPolicy()
+
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [contentSecurityPolicy]
+      }
+    })
+  })
+}
 
 const clerk = createClerkBridge({
   storage: storage(),
@@ -105,6 +151,7 @@ app.whenReady().then(() => {
   })
 
   registerAppProtocol()
+  registerContentSecurityPolicy()
   createWindow()
 
   app.on('activate', function () {
