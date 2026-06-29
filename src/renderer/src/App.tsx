@@ -7,17 +7,6 @@ import { SignUpPage } from './pages/SignUpPage'
 import { WaitlistPage } from './pages/WaitlistPage'
 
 const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string
-const electronRendererOrigin = 'clerk://app'
-
-function toRouterPath(to: string): string {
-  const url = new URL(to, `${electronRendererOrigin}/`)
-
-  if (url.protocol === 'clerk:' && url.host === 'app') {
-    return `${url.pathname || '/'}${url.search}${url.hash}`
-  }
-
-  return to
-}
 
 function ClerkProviderWithRouter({ children }: { children: React.ReactNode }): React.JSX.Element {
   const navigate = useNavigate()
@@ -26,8 +15,8 @@ function ClerkProviderWithRouter({ children }: { children: React.ReactNode }): R
     <ClerkProvider
       publishableKey={publishableKey}
       allowedRedirectProtocols={['clerk:']}
-      routerPush={(to) => navigate(toRouterPath(to))}
-      routerReplace={(to) => navigate(toRouterPath(to), { replace: true })}
+      routerPush={(to) => navigate(to)}
+      routerReplace={(to) => navigate(to, { replace: true })}
       signInUrl="/sign-in"
       signUpUrl="/sign-up"
     >
