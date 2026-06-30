@@ -3,7 +3,7 @@ import { SignIn } from '@clerk/electron/react'
 export function SignInPage(): React.JSX.Element {
   return (
     <div style={s.page}>
-      <SignIn />
+      <SignIn withSignUp={true} />
     </div>
   )
 }
